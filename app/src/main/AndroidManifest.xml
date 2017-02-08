@@ -18,6 +18,7 @@
 
     <!-- This permission is necessary in order for Sunshine to perform network access. -->
     <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Required to act as a custom watch face. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
@@ -65,6 +66,9 @@
         <service
             android:name=".sync.SunshineSyncIntentService"
             android:exported="false" />
+
+        <service android:name=".wear.WearIntentService"
+            android:exported="true"></service>
 
         <!-- This is the Service declaration used in conjunction with FirebaseJobDispatcher -->
         <service

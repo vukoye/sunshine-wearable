@@ -3,13 +3,13 @@ package com.example.android.sunshine.wear;
 import android.app.IntentService;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.android.sunshine.data.WeatherContract;
+import com.example.android.sunshine.utilities.SunshineWeatherUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -40,27 +40,34 @@ public class WearIntentService extends IntentService implements GoogleApiClient.
     private static final int INDEX_MAX_TEMP = 1;
     private static final int INDEX_MIN_TEMP = 2;
     private int mWeatherId;
-    private double mMaxTemp;
-    private double mMinTemp;
+    private String mHighTemp;
+    private String mLowTemp;
 
     public WearIntentService(final String name) {
         super(name);
     }
 
+    public WearIntentService() {
+        super("WearIntentService");
+    }
+
+
     @Override
     protected void onHandleIntent(@Nullable final Intent intent) {
-        Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherUriWithDate(System.currentTimeMillis());
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Cursor cursor = getContentResolver().query(weatherUri, PROJECTION, null, null, sortOrder);
+        String selection = WeatherContract.WeatherEntry.getSqlSelectForTodayOnwards();
+        Cursor cursor = getContentResolver().query(WeatherContract.WeatherEntry.CONTENT_URI,
+                PROJECTION, selection, null, sortOrder);
 
-        if (cursor == null) {
+        if (cursor == null || cursor.getCount() == 0) {
             return;
         }
-
+        cursor.moveToFirst();
         mWeatherId = cursor.getInt(INDEX_WEATHER_ID);
-        mMaxTemp = cursor.getDouble(INDEX_MAX_TEMP);
-        mMinTemp = cursor.getDouble(INDEX_MIN_TEMP);
-
+        double maxTemp = cursor.getDouble(INDEX_MAX_TEMP);
+        double mintTemp = cursor.getDouble(INDEX_MIN_TEMP);
+        mHighTemp = SunshineWeatherUtils.formatTemperature(getApplicationContext(), maxTemp);
+        mLowTemp = SunshineWeatherUtils.formatTemperature(getApplicationContext(), mintTemp);
         cursor.close();
 
         if (mGoogleApiClient == null) {
@@ -93,8 +100,8 @@ public class WearIntentService extends IntentService implements GoogleApiClient.
     private void sendWeatherData() {
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(WEATHER_PATH);
         putDataMapRequest.getDataMap().putInt(KEY_WEATHER_ID, mWeatherId);
-        putDataMapRequest.getDataMap().putDouble(KEY_MAX_TEMP, mMaxTemp);
-        putDataMapRequest.getDataMap().putDouble(KEY_MIN_TEMP, mMinTemp);
+        putDataMapRequest.getDataMap().putString(KEY_MAX_TEMP, mHighTemp);
+        putDataMapRequest.getDataMap().putString(KEY_MIN_TEMP, mLowTemp);
         PutDataRequest putDataRequest = putDataMapRequest.asPutDataRequest();
         Wearable.DataApi.putDataItem(mGoogleApiClient, putDataRequest).setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
             @Override
