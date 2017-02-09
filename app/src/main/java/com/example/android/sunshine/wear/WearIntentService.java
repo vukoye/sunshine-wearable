@@ -99,6 +99,7 @@ public class WearIntentService extends IntentService implements GoogleApiClient.
 
     private void sendWeatherData() {
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(WEATHER_PATH);
+        putDataMapRequest.getDataMap().putLong("dummyData", System.currentTimeMillis()); //
         putDataMapRequest.getDataMap().putInt(KEY_WEATHER_ID, mWeatherId);
         putDataMapRequest.getDataMap().putString(KEY_MAX_TEMP, mHighTemp);
         putDataMapRequest.getDataMap().putString(KEY_MIN_TEMP, mLowTemp);
