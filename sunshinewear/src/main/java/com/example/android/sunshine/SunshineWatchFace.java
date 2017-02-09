@@ -362,7 +362,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             float xMinutes = xHours + mHourPaint.measureText(hourString);
             canvas.drawText(minutesString, xMinutes, mYOffset, mMinutePaint);
-            if (mAmbient) {
+            if (!mAmbient) {
                 float xDate = bounds.centerX() - mDatePaint.measureText(dateString) / 2;
                 canvas.drawText(dateString, xDate, mYOffset + mLineHeight * 2f, mDatePaint);
 
